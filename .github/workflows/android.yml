@@ -1,4 +1,6 @@
-
+      - name: Align Java and Kotlin versions
+        run: |
+          find extracted/MvoyAuto -type f \( -name "*.gradle" -o -name "*.gradle.kts" \) -exec sed -i 's/VERSION_1_8/VERSION_17/g; s/jvmTarget = "1.8"/jvmTarget = "17"/g; s/jvmTarget = '\''1.8'\''/jvmTarget = '\''17'\''/g' {} +
 name: Build MVOY AUTO APK
 
 on:
