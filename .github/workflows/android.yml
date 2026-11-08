@@ -1,10 +1,12 @@
-
-name: Build BOWER Android Auto APK
+name: BOWER Android APK
 
 on:
   push:
     branches:
       - main
+    paths:
+      - "BOWER_ANDROID_AUTO_V2.zip"
+      - ".github/workflows/android.yml"
   workflow_dispatch:
 
 permissions:
@@ -12,88 +14,64 @@ permissions:
 
 jobs:
   build:
+    name: Build BOWER debug APK
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Install Java 17
-        uses: actions/setup-java@v5
+      - name: Check project archive
+        shell: bash
+        run: |
+          set -euo pipefail
+          ARCHIVE="BOWER_ANDROID_AUTO_V2.zip"
+
+          if [ ! -f "$ARCHIVE" ]; then
+            echo "::error::Archive introuvable à la racine : $ARCHIVE"
+            echo "Dépose le fichier BOWER_ANDROID_AUTO_V2.zip à la racine du dépôt."
+            exit 1
+          fi
+
+          unzip -t "$ARCHIVE"
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: '17'
+          java-version: "17"
 
-      - name: Install Gradle 8.9
+      - name: Set up Gradle 8.9
         uses: gradle/actions/setup-gradle@v4
         with:
-          gradle-version: '8.9'
+          gradle-version: "8.9"
 
-      - name: Extract BOWER source archive
-        run: unzip -q BOWER_ANDROID_AUTO_V1_REPACKAGED.zip -d extracted
-
-      - name: Fix Android manifest
+      - name: Extract Android project
+        shell: bash
         run: |
-          cat > extracted/MvoyAuto/app/src/main/AndroidManifest.xml <<'EOF'
-          <manifest xmlns:android="http://schemas.android.com/apk/res/android">
-              <uses-permission android:name="android.permission.INTERNET" />
-              <application
-                  android:allowBackup="true"
-                  android:label="BOWER"
-                  android:theme="@style/AppTheme"
-                  android:usesCleartextTraffic="false">
-                  <meta-data
-                      android:name="com.google.android.gms.car.application"
-                      android:resource="@xml/automotive_app_desc" />
-                  <activity
-                      android:name=".MainActivity"
-                      android:exported="true">
-                      <intent-filter>
-                          <action android:name="android.intent.action.MAIN" />
-                          <category android:name="android.intent.category.LAUNCHER" />
-                      </intent-filter>
-                  </activity>
-                  <service
-                      android:name=".BowerCarAppService"
-                      android:exported="true">
-                      <intent-filter>
-                          <action android:name="androidx.car.app.CarAppService" />
-                          <category android:name="androidx.car.app.category.POI" />
-                      </intent-filter>
-                      <meta-data
-                          android:name="androidx.car.app.minCarApiLevel"
-                          android:value="1" />
-                  </service>
-              </application>
-          </manifest>
-          EOF
+          set -euo pipefail
+          mkdir -p extracted
+          unzip -q BOWER_ANDROID_AUTO_V2.zip -d extracted
 
-      - name: Fix Java and Kotlin targets
-        run: |
-          python3 - <<'PY'
-          from pathlib import Path
-          p = Path("extracted/MvoyAuto/app/build.gradle.kts")
-          s = p.read_text()
-          old = "android {"
-          new = """android {
-              compileOptions {
-                  sourceCompatibility = JavaVersion.VERSION_17
-                  targetCompatibility = JavaVersion.VERSION_17
-              }
-              kotlinOptions {
-                  jvmTarget = "17"
-              }
-          """
-          if old not in s:
-              raise SystemExit("Bloc android introuvable")
-          p.write_text(s.replace(old, new, 1))
-          PY
+          PROJECT_DIR="extracted/MvoyAuto"
+
+          if [ ! -f "$PROJECT_DIR/settings.gradle.kts" ]; then
+            echo "::error::Projet introuvable dans extracted/MvoyAuto."
+            echo "Le ZIP doit contenir le dossier MvoyAuto/ à sa racine."
+            find extracted -maxdepth 3 -type f | sort | head -200
+            exit 1
+          fi
 
       - name: Build debug APK
-        run: gradle -p extracted/MvoyAuto assembleDebug
+        shell: bash
+        run: |
+          set -euo pipefail
+          gradle -p extracted/MvoyAuto --no-daemon clean assembleDebug
 
-      - name: Upload APK
+      - name: Upload BOWER APK
         uses: actions/upload-artifact@v4
         with:
           name: BOWER-ANDROID-AUTO-APK
           path: extracted/MvoyAuto/app/build/outputs/apk/debug/*.apk
           if-no-files-found: error
+          retention-days: 14
