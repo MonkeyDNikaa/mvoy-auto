@@ -1,3 +1,4 @@
+
 name: BOWER Android APK
 
 on:
@@ -5,7 +6,7 @@ on:
     branches:
       - main
     paths:
-      - "BOWER_ANDROID_AUTO_V2.zip"
+      - "BOWER_ANDROID_AUTO_V2_VERIFIE.zip"
       - ".github/workflows/android.yml"
   workflow_dispatch:
 
@@ -25,11 +26,10 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          ARCHIVE="BOWER_ANDROID_AUTO_V2.zip"
+          ARCHIVE="BOWER_ANDROID_AUTO_V2_VERIFIE.zip"
 
           if [ ! -f "$ARCHIVE" ]; then
-            echo "::error::Archive introuvable à la racine : $ARCHIVE"
-            echo "Dépose le fichier BOWER_ANDROID_AUTO_V2.zip à la racine du dépôt."
+            echo "::error::Archive introuvable : $ARCHIVE"
             exit 1
           fi
 
@@ -51,14 +51,13 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p extracted
-          unzip -q BOWER_ANDROID_AUTO_V2.zip -d extracted
+          unzip -q BOWER_ANDROID_AUTO_V2_VERIFIE.zip -d extracted
 
           PROJECT_DIR="extracted/MvoyAuto"
 
           if [ ! -f "$PROJECT_DIR/settings.gradle.kts" ]; then
-            echo "::error::Projet introuvable dans extracted/MvoyAuto."
-            echo "Le ZIP doit contenir le dossier MvoyAuto/ à sa racine."
-            find extracted -maxdepth 3 -type f | sort | head -200
+            echo "::error::Projet introuvable dans MvoyAuto/"
+            find extracted -maxdepth 4 -type f | sort
             exit 1
           fi
 
