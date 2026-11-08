@@ -6,7 +6,7 @@ on:
     branches:
       - main
     paths:
-      - "BOWER_ANDROID_AUTO_V2_VERIFIE.zip"
+      - "BOWER_FIX_BOWER_ANDROID.zip"
       - ".github/workflows/android.yml"
   workflow_dispatch:
 
@@ -26,7 +26,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          ARCHIVE="BOWER_ANDROID_AUTO_V2_VERIFIE.zip"
+          ARCHIVE="BOWER_FIX_BOWER_ANDROID.zip"
 
           if [ ! -f "$ARCHIVE" ]; then
             echo "::error::Archive introuvable : $ARCHIVE"
@@ -51,7 +51,7 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p extracted
-          unzip -q BOWER_ANDROID_AUTO_V2_VERIFIE.zip -d extracted
+          unzip -q BOWER_FIX_BOWER_ANDROID.zip -d extracted
 
           PROJECT_DIR="extracted/MvoyAuto"
 
