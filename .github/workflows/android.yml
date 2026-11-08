@@ -6,7 +6,7 @@ on:
     branches:
       - main
     paths:
-      - "BOWER_FIX_BOWER_ANDROID.zip"
+      - "BOWER_AUTO_FIX.zip"
       - ".github/workflows/android.yml"
   workflow_dispatch:
 
@@ -15,7 +15,7 @@ permissions:
 
 jobs:
   build:
-    name: Build BOWER debug APK
+    name: Build BOWER Android APK
     runs-on: ubuntu-latest
 
     steps:
@@ -26,7 +26,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          ARCHIVE="BOWER_FIX_BOWER_ANDROID.zip"
+          ARCHIVE="BOWER_AUTO_FIX.zip"
 
           if [ ! -f "$ARCHIVE" ]; then
             echo "::error::Archive introuvable : $ARCHIVE"
@@ -51,12 +51,12 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p extracted
-          unzip -q BOWER_FIX_BOWER_ANDROID.zip -d extracted
+          unzip -q BOWER_AUTO_FIX.zip -d extracted
 
           PROJECT_DIR="extracted/MvoyAuto"
 
           if [ ! -f "$PROJECT_DIR/settings.gradle.kts" ]; then
-            echo "::error::Projet introuvable dans MvoyAuto/"
+            echo "::error::Projet MvoyAuto introuvable"
             find extracted -maxdepth 4 -type f | sort
             exit 1
           fi
